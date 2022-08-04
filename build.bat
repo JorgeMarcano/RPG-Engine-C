@@ -1,0 +1,1 @@
+gcc -std=c99 -Wall -Wextra -g -o bin/app.exe src/*.c -Llib -lmingw32 -lSDL2main -lSDL2 -Iinclude
