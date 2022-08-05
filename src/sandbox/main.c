@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "engine.h"
+#include "Engine/engine.h"
 
 //Screen dimension constants
 #define SCREEN_WIDTH 640
@@ -21,15 +21,8 @@ int main(int argc, char* argv[]) {
     Engine* engine;
 
     engine_init(&desc, &engine);
-
-    //Fill the surface white
-    SDL_FillRect( engine->screenSurface, NULL, SDL_MapRGB( engine->screenSurface->format, 0xFF, 0xFF, 0xFF ) );
     
-    //Update the surface
-    SDL_UpdateWindowSurface( engine->window );
-
-    //Wait two seconds
-    SDL_Delay( 2000 );
+    engine_mainloop(engine);
 
     engine_clean(engine);
 

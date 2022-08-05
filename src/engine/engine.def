@@ -1,0 +1,6 @@
+LIBRARY   Engine
+EXPORTS
+   engine_init
+   engine_getError
+   engine_clean
+   engine_mainloop

@@ -3,9 +3,19 @@
 
 #include <SDL2/SDL.h>
 
+#define false   0
+#define true    1
+typedef unsigned char bool;
+
 typedef struct Engine {
     SDL_Window*     window;
     SDL_Surface*    screenSurface;
+    SDL_Renderer*   renderer;
+
+    int width;
+    int height;
+
+    bool is_running;
 } Engine;
 
 typedef struct EngineDesc {
@@ -26,5 +36,7 @@ int engine_init(EngineDesc* desc, Engine** p_engine);
 const char* engine_getError();
 
 void engine_clean(Engine* engine);
+
+void engine_mainloop(Engine* engine);
 
 #endif
