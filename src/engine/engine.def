@@ -1,6 +1,13 @@
 LIBRARY   Engine
 EXPORTS
    engine_init
-   engine_getError
    engine_clean
    engine_mainloop
+   engine_start
+
+   entity_default_updater
+   entity_default_renderer
+   entity_default_handler
+   load_bmp
+   map_default_renderer
+   sprite_default_renderer

@@ -1,0 +1,48 @@
+Brainstorm of Engine Structure
+-> Create a Scene using a Tile editor
+-> Have a Layer of the editor be unmovable collisions (walls, etc.)
+-> Map Data Structure contains only constant things (animated background parts are sprites?)
+-> Have a layer be sprite locations, along with sprite information (texture sprite file, etc.)
+-> Part of that info is a unique identifier, and a Updater and Render and event handler ID
+-> If no render ID supplied use a standard one (implemented much later)
+-> In the main game file, must create a function for each updater and renderer and event handler ID
+-> must then link updater and renderer ID to proper function
+-> When loading a Scene, will use that link to associate each entity to its own updater and renderer
+-> Can save current scene information (if leaves scene and comes back for example)
+-> 1 Layer to say where MC spawns and give a Scene specific updater and renderer (updter to be used in addition to base MC updater)
+-> 1 Layer of Scene is "Teleportations" to other scenes(?) (Could also just be embedded in character sprite's updater)
+
+-> Scenes are entirely self-contained, no communication with other scenes
+    |-> Scenes can share a data "file" or save file, which will be read when scene is first loaded (along with scene specific save file)
+    |-> Worst case, scenes have to communicate event-based
+
+-> Scene Load will render the whole (constant) background into a texture so that it only has to do that once.
+
+-> Must create main menu logic
+
+-> When we want to change Scene, the scene itself will push a custom event to the SDL event queue, so that the engine can handle that event on next frame
+
+
+Life cycle of Game:
+Sandbox:
+- Engine init
+    - Engine:
+    - Create window and renderer
+(- Create menu, not priority)
+- Engine Start -> supply entry scene data (file, for now hard code)
+    - Load scene data from file (not yet implemented, for now given hard coded)
+    - Enter mainloop
+        - Mainloop:
+        - Handle Events
+            - Scene:
+            - Entities handle event
+        - Update and render scene
+            - Scene:
+            - Update and render entities
+
+if we ever want to change scene:
+- Scene pushes event to queue for a change of scene (and which scene to change to)
+- Engine sees that event and:
+    - Saves current scene
+    - Destroys current scene (things like HUD probably outlive scene)
+    - Load new scene

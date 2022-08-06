@@ -3,9 +3,9 @@
 
 #include "Engine/engine.h"
 
-//Screen dimension constants
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
+// FIXME: Temp functions
+Scene* createScene(Engine* engine);
+Sprite* createSprite(Engine* engine);
 
 int main(int argc, char* argv[]) {
 
@@ -21,10 +21,59 @@ int main(int argc, char* argv[]) {
     Engine* engine;
 
     engine_init(&desc, &engine);
-    
-    engine_mainloop(engine);
 
+    // TEMP stuff
+    Scene* scene = createScene(engine);
+    Sprite* sprite = createSprite(engine);
+    scene->size_sprites = 1;
+    scene->sprites = malloc(scene->size_sprites * sizeof(Sprite*));
+    scene->sprites[0] = sprite;
+    
+    engine_start(engine, scene);
+
+    // scene_destroy(scene, true);
     engine_clean(engine);
 
 	return 0;
+}
+
+Scene* createScene(Engine* engine) {
+    Scene* scene = malloc(sizeof(Scene));
+    scene->center.x = 0;
+    scene->center.y = 0;
+    scene->size_sprites = 0;
+    Hud* hud = malloc(sizeof(Hud));
+    hud->updater = &entity_default_updater;
+    hud->renderer = &entity_default_renderer;
+    hud->handler = &entity_default_handler;
+    scene->hud = hud;
+    Map* map = malloc(sizeof(Map));
+    map->updater = &entity_default_updater;
+    map->renderer = &map_default_renderer;
+    map->handler = &entity_default_handler;
+    map->size_px.h = 1600;
+    map->size_px.w = 1600;
+    globals_Texture* texture;
+    load_bmp(engine, "res/bg.bmp", &texture);
+    map->texture = texture->texture;
+    free(texture);
+    scene->map = map;
+    scene->renderer = engine->renderer;
+
+    return scene;
+}
+
+Sprite* createSprite(Engine* engine) {
+    Sprite* sprite = malloc(sizeof(Sprite));
+
+    sprite->updater = &entity_default_updater;
+    sprite->renderer = &sprite_default_renderer;
+    sprite->handler = &entity_default_handler;
+
+    load_bmp(engine, "res/test.bmp", &(sprite->texture));
+
+    sprite->pos_px.x = (SCREEN_WIDTH - sprite->texture->size.w) / 2;
+    sprite->pos_px.y = (SCREEN_HEIGHT - sprite->texture->size.h) / 2;
+
+    return sprite;
 }

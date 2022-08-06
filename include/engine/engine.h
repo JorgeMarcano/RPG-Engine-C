@@ -1,13 +1,11 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include <SDL2/SDL.h>
-
-#define false   0
-#define true    1
-typedef unsigned char bool;
+#include "globals.h"
+#include "scene.h"
 
 typedef struct Engine {
+    // Graphics based stuff
     SDL_Window*     window;
     SDL_Surface*    screenSurface;
     SDL_Renderer*   renderer;
@@ -15,7 +13,11 @@ typedef struct Engine {
     int width;
     int height;
 
+    // Status information
     bool is_running;
+
+    // Game information
+    Scene* scene;
 } Engine;
 
 typedef struct EngineDesc {
@@ -32,11 +34,11 @@ typedef struct EngineDesc {
 } EngineDesc;
 
 int engine_init(EngineDesc* desc, Engine** p_engine);
-
-const char* engine_getError();
+void engine_start(Engine* engine, Scene* scene); // FIXME: Temp parameter, will later be file
 
 void engine_clean(Engine* engine);
 
-void engine_mainloop(Engine* engine);
+void load_bmp(Engine* engine, const char* src, globals_Texture** dest);
+void engine_clean_texture(globals_Texture* texture);
 
 #endif

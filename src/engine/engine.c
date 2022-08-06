@@ -2,22 +2,11 @@
 #include <stdlib.h>
 
 #include "Engine/engine.h"
+#include "Engine/scene.h"
 
-typedef struct engine_Texture {
-    SDL_Texture* texture;
-    SDL_Rect size;
-} engine_Texture;
-
+void engine_mainloop(Engine* engine);
 void handle_event(SDL_Event* event);
-void load_bmp(Engine* engine, const char* src, engine_Texture** dest);
-
-void mainloop_render(Engine* engine);
 void mainloop_handle_keyboard(Engine* engine, SDL_Event* event);
-
-void engine_clean_texture(engine_Texture* texture);
-
-// TODO: Temp
-engine_Texture* bmpTexture = NULL;
 
 int engine_init(EngineDesc* desc, Engine** p_engine) {
 
@@ -52,7 +41,7 @@ int engine_init(EngineDesc* desc, Engine** p_engine) {
     }
 
     // Set render color
-    SDL_SetRenderDrawColor(engine->renderer, 0xff, 0xff, 0xff, 0xff);
+    SDL_SetRenderDrawColor(engine->renderer, 0x00, 0x00, 0x00, 0x00);
 
     //Get window surface
     engine->screenSurface = SDL_GetWindowSurface( engine->window );
@@ -66,14 +55,10 @@ int engine_init(EngineDesc* desc, Engine** p_engine) {
     return 0;
 }
 
-const char* engine_getError() {
-    return SDL_GetError();
-}
-
 void engine_clean(Engine* engine) {
-    // TODO: temp
-    if (bmpTexture)
-        engine_clean_texture(bmpTexture);
+    // If Scene not already cleared, destroy
+    if (engine->scene)
+        scene_destroy(engine->scene, true);
 
     // Destroy Renderer
     if (engine->renderer)
@@ -93,7 +78,7 @@ void engine_clean(Engine* engine) {
     free(engine);
 }
 
-void engine_clean_texture(engine_Texture* texture) {
+void engine_clean_texture(globals_Texture* texture) {
     if (texture) {
         if (texture->texture) {
             SDL_DestroyTexture(texture->texture);
@@ -110,6 +95,10 @@ void engine_mainloop(Engine* engine) {
 
     engine->is_running = true;
 
+    // TODO: Might have to add guard for overflow (>1000Hrs though so not priority)
+    Uint32 t0 = SDL_GetTicks();
+    Uint32 t1 = t0;
+
     SDL_Event event;
     while (engine->is_running) {
         // Handle all events
@@ -122,23 +111,31 @@ void engine_mainloop(Engine* engine) {
                 mainloop_handle_keyboard(engine, &event);
                 break;
             }
+
+            // Have Scene handle event
+            scene_handle_event(engine->scene, &event);
         }
 
         // Render clear
-        SDL_SetRenderDrawColor(engine->renderer, 0xff, 0xff, 0xff, 0xff);
+        SDL_SetRenderDrawColor(engine->renderer, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(engine->renderer);
+        SDL_SetRenderDrawColor(engine->renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
-        // Render screen
-        mainloop_render(engine);
+        // Update and Render Scene
+        t1 = SDL_GetTicks();
+        scene_update_render(engine->scene, t1-t0);
 
         // Update screen
         SDL_RenderPresent(engine->renderer);
+
+        // Update old time
+        t0 = t1;
     }
     
     return;
 }
 
-void load_bmp(Engine* engine, const char* src, engine_Texture** dest) {
+void load_bmp(Engine* engine, const char* src, globals_Texture** dest) {
     SDL_Surface* surface;
 
     surface = SDL_LoadBMP(src);
@@ -148,7 +145,7 @@ void load_bmp(Engine* engine, const char* src, engine_Texture** dest) {
         return;
     }
 
-    (*dest) = malloc(sizeof(engine_Texture));
+    (*dest) = malloc(sizeof(globals_Texture));
     (*dest)->texture = SDL_CreateTextureFromSurface(engine->renderer, surface);
     if ((*dest)->texture == NULL) {
         printf("Failed to create texture from %s! SDL Error: %s\n", src, SDL_GetError());
@@ -165,23 +162,6 @@ void load_bmp(Engine* engine, const char* src, engine_Texture** dest) {
     SDL_FreeSurface(surface);
 
     return;
-}
-
-void mainloop_render(Engine* engine) {
-    if (!bmpTexture)
-        load_bmp(engine, "res/test.bmp", &bmpTexture);
-
-    if (!bmpTexture) {
-        //Fill the surface white
-        // SDL_RenderDrawRect(engine->renderer, NULL);
-        return;
-    }
-
-    SDL_Rect pos = bmpTexture->size;
-    pos.x = (engine->width - pos.w) / 2;
-    pos.y = (engine->height - pos.h) / 2;
-
-    SDL_RenderCopy(engine->renderer, bmpTexture->texture, NULL, &pos);
 }
 
 void mainloop_handle_keyboard(Engine* engine, SDL_Event* event) {
@@ -210,4 +190,12 @@ void mainloop_handle_keyboard(Engine* engine, SDL_Event* event) {
     default:
         printf("Default Key\n");
     }
+}
+
+void engine_start(Engine* engine, Scene* scene) {
+    // TODO: Load scene from file
+    scene_load(scene, &(engine->scene));
+
+    // Start Mainloop
+    engine_mainloop(engine);
 }
