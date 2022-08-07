@@ -15,4 +15,6 @@ void files_clean_tileset(globals_Tileset* tileset);
 // Remove 1 usage from count, if 0 usages left, clean this texture and return true
 bool files_remove_usage(globals_Tileset* tileset);
 
+bool files_load_scene(const char* src, struct Scene** dest, SDL_Renderer* renderer, globals_Tileset* startTileset);
+
 #endif

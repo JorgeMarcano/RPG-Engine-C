@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     scene->sprites = malloc(scene->size_sprites * sizeof(Sprite*));
     scene->sprites[0] = sprite;
     
-    engine_start(engine, scene, "res/tilesets/tiles-map.tsx");
+    engine_start(engine, "res/maps/test.tmx");
 
     // scene_destroy(scene, true);
     engine_clean(engine);

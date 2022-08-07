@@ -8,7 +8,7 @@
 #define true    1
 typedef unsigned char bool;
 
-#define TILE_SIZE   64
+#define TILE_SIZE   16
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
@@ -43,5 +43,6 @@ const SDL_Rect tile_size;
 const SDL_Rect screen_size;
 
 struct Engine;
+struct Scene;
 
 #endif

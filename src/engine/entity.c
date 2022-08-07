@@ -5,6 +5,9 @@ void map_default_renderer(void* entity, void* scene) {
     Scene* p_scene = (Scene*) scene;
     Map* p_map = (Map*) entity;
 
+        // SDL_RenderCopy(p_scene->renderer, p_map->texture, NULL, NULL);
+        // return;
+
     // Get the Rect to display
     SDL_Point center_pos_px;
     center_pos_px.x = p_scene->center.x * tile_size.w + tile_size.w / 2;
@@ -20,7 +23,7 @@ void map_default_renderer(void* entity, void* scene) {
         src_rect.x = 0;
     }
     if (src_rect.x + src_rect.w > p_map->size_px.w) {
-        src_rect.w = src_rect.x - p_map->size_px.w;
+        src_rect.w = p_map->size_px.w - src_rect.x;
         dst_rect.w = src_rect.w;
     }
 
@@ -32,7 +35,7 @@ void map_default_renderer(void* entity, void* scene) {
         src_rect.y = 0;
     }
     if (src_rect.y + src_rect.h > p_map->size_px.h) {
-        src_rect.h = src_rect.y - p_map->size_px.h;
+        src_rect.h = p_map->size_px.h - src_rect.y;
         dst_rect.h = src_rect.h;
     }
     
@@ -64,6 +67,9 @@ void entity_default_handler(void* entity, void* scene, SDL_Event* event) {
 }
 
 void map_destroy(Map* map) {
+    if (map == NULL)
+        return;
+
     SDL_DestroyTexture(map->texture);
     map->texture = NULL;
 
@@ -80,12 +86,18 @@ void map_destroy(Map* map) {
 }
 
 void sprite_destroy(Sprite* sprite) {
+    if (sprite == NULL)
+        return;
+
     SDL_DestroyTexture(sprite->texture->texture);
     free(sprite->texture);
 
     free(sprite);
 }
 void hud_destroy(Hud* hud) {
+    if (hud == NULL)
+        return;
+
     SDL_DestroyTexture(hud->texture->texture);
     free(hud->texture);
 
@@ -95,19 +107,28 @@ void hud_destroy(Hud* hud) {
 void map_generate(SDL_Renderer* renderer, globals_Tile** tiling, bool** collisions, SDL_Rect map_size, Map** dest) {
     Map* map = malloc(sizeof(Map));
 
+    (*dest) = map;
+
     map->collisionTiles = collisions;
     map->size_tile = map_size;
     map->size_px.w = map_size.w * tile_size.w;
     map->size_px.h = map_size.h * tile_size.h;
 
     map->texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, map->size_px.w, map->size_px.h);
+    if (tiling == NULL)
+        return;
+
     SDL_SetRenderTarget(renderer, map->texture);
 
     SDL_Rect src_rect = tile_size;
     SDL_Rect dst_rect = tile_size;
+    int j;
     for (int i = 0; i < map_size.w; i++) {
-        for (int j = 0; j < map_size.h; j++) {
+        for (j = 0; j < map_size.h; j++) {
             globals_Tile* tile = &(tiling[i][j]);
+
+            if (tile->tileset == NULL)
+                continue;
 
             src_rect.x = tile->pos.x * tile_size.w;
             src_rect.y = tile->pos.y * tile_size.h;
@@ -120,6 +141,4 @@ void map_generate(SDL_Renderer* renderer, globals_Tile** tiling, bool** collisio
     }
 
     SDL_SetRenderTarget(renderer, NULL);
-
-    (*dest) = map;
 }

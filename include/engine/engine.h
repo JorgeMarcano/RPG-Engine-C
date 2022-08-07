@@ -36,7 +36,7 @@ typedef struct EngineDesc {
 } EngineDesc;
 
 int engine_init(EngineDesc* desc, Engine** p_engine);
-void engine_start(Engine* engine, Scene* scene, const char* src); // FIXME: Temp parameter, will later be file
+void engine_start(Engine* engine, const char* src);
 
 void engine_clean(Engine* engine);
 

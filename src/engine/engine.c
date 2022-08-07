@@ -32,7 +32,7 @@ int engine_init(EngineDesc* desc, Engine** p_engine) {
         return -2;
     }
 
-    engine->renderer = SDL_CreateRenderer(engine->window, -1, SDL_RENDERER_ACCELERATED);
+    engine->renderer = SDL_CreateRenderer(engine->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
     if (engine->renderer == NULL) {
         printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
         engine_clean(engine);
@@ -161,9 +161,9 @@ void mainloop_handle_keyboard(Engine* engine, SDL_Event* event) {
     }
 }
 
-void engine_start(Engine* engine, Scene* scene, const char* src) {
-    // TODO: Load scene from file
-    scene_load(scene, src, engine, &(engine->scene));
+void engine_start(Engine* engine, const char* src) {
+    // Load scene from file
+    scene_load(src, engine, &(engine->scene));
 
     // Start Mainloop
     engine_mainloop(engine);

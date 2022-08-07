@@ -57,3 +57,10 @@ TODO: Save scene
 TODO: Character movement
 TODO: Collision detection
 TODO: HUD elements (textbox, menu, etc)
+
+Scene Layers in Tiled:
+- "Map" -> static map part
+- "Collisions" -> static map collisions
+- "Sprites" -> Non-playeable sprites (anithing with mvmt or animations) (properties of updater ID, etc AND if collisions)
+- "Doors" -> Teleportations (when a scene goes to another scene) (each tile there has property of which scene to load, and where to spawn MC (by the spawn ID))
+- "Spawn" -> Where main character spawns, each possible spawn location has ID and ID 0 is default
