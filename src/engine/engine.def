@@ -8,6 +8,6 @@ EXPORTS
    entity_default_updater
    entity_default_renderer
    entity_default_handler
-   load_bmp
+   files_load_texture
    map_default_renderer
    sprite_default_renderer

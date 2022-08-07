@@ -67,6 +67,15 @@ void map_destroy(Map* map) {
     SDL_DestroyTexture(map->texture);
     map->texture = NULL;
 
+    if (map->collisionTiles) {
+        for (int i = 0; i < map->size_tile.w; i++) {
+            free(map->collisionTiles[i]);
+            map->collisionTiles[i] = NULL;
+        }
+
+        free(map->collisionTiles);
+    }
+
     free(map);
 }
 
@@ -81,4 +90,36 @@ void hud_destroy(Hud* hud) {
     free(hud->texture);
 
     free(hud);
+}
+
+void map_generate(SDL_Renderer* renderer, globals_Tile** tiling, bool** collisions, SDL_Rect map_size, Map** dest) {
+    Map* map = malloc(sizeof(Map));
+
+    map->collisionTiles = collisions;
+    map->size_tile = map_size;
+    map->size_px.w = map_size.w * tile_size.w;
+    map->size_px.h = map_size.h * tile_size.h;
+
+    map->texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, map->size_px.w, map->size_px.h);
+    SDL_SetRenderTarget(renderer, map->texture);
+
+    SDL_Rect src_rect = tile_size;
+    SDL_Rect dst_rect = tile_size;
+    for (int i = 0; i < map_size.w; i++) {
+        for (int j = 0; j < map_size.h; j++) {
+            globals_Tile* tile = &(tiling[i][j]);
+
+            src_rect.x = tile->pos.x * tile_size.w;
+            src_rect.y = tile->pos.y * tile_size.h;
+
+            dst_rect.x = i * tile_size.w;
+            dst_rect.y = j * tile_size.h;
+
+            SDL_RenderCopy(renderer, tile->tileset->texture->texture, &src_rect, &dst_rect);
+        }
+    }
+
+    SDL_SetRenderTarget(renderer, NULL);
+
+    (*dest) = map;
 }

@@ -1,4 +1,5 @@
 #include "Engine/scene.h"
+#include "Engine/engine.h"
 
 void scene_update_render(Scene* scene, Uint32 deltaT) {
     // Update map
@@ -46,8 +47,11 @@ void scene_handle_event(Scene* scene, SDL_Event* event) {
     (*scene->hud->handler)(scene->hud, scene, event);
 }
 
-bool scene_load(Scene* scene, Scene** p_scene) {
-    (*p_scene) = scene;
+bool scene_load(Scene* scene, const char* src, struct Engine* engine, Scene** dest) {
+    globals_Tileset* temp;
+    files_load_tileset(src, &temp, engine->renderer, &(engine->tilesets));
+
+    (*dest) = scene;
 
     return 1;
 }

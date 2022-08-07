@@ -3,6 +3,7 @@
 
 #include "globals.h"
 #include "entity.h"
+#include "files.h"
 
 // A Scene is a structure that contains the information of:
 //      - All sprites present in the scene, whether visible or off-screne
@@ -31,7 +32,7 @@ void scene_update(Scene* scene, Uint32 deltaT);
 // Let scene's components handle event
 void scene_handle_event(Scene* scene, SDL_Event* event);
 
-bool scene_load(Scene* scene, Scene** p_scene); // FIXME: Replace scene input with file input
+bool scene_load(Scene* scene, const char* src, struct Engine* engine, Scene** dest); // FIXME: Replace scene input with file input
 bool scene_save();
 
 void scene_destroy(Scene* scene, bool destroyHUD);

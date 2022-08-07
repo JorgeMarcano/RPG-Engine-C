@@ -19,6 +19,9 @@ typedef struct Sprite {
     SDL_Point pos_tile;
     SDL_Point pos_px;
 
+    globals_Tile animation;
+    SDL_Point animation_size;
+
     Updater updater;
     Renderer renderer;
     Handler handler;
@@ -28,6 +31,9 @@ typedef struct Map {
     SDL_Texture* texture;
     SDL_Rect size_px;
     SDL_Rect size_tile;
+
+    // 2D array of size size_tile.w by size_tile.h
+    bool** collisionTiles;
 
     Updater updater;
     Renderer renderer;
@@ -52,5 +58,7 @@ void entity_default_handler(void* entity, void* scene, SDL_Event* event);
 void map_destroy(Map* map);
 void sprite_destroy(Sprite* sprite);
 void hud_destroy(Hud* hud);
+
+void map_generate(SDL_Renderer* renderer, globals_Tile** tiling, bool** collisions, SDL_Rect map_size, Map** dest);
 
 #endif

@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     scene->sprites = malloc(scene->size_sprites * sizeof(Sprite*));
     scene->sprites[0] = sprite;
     
-    engine_start(engine, scene);
+    engine_start(engine, scene, "res/tilesets/tiles-map.tsx");
 
     // scene_destroy(scene, true);
     engine_clean(engine);
@@ -54,7 +54,7 @@ Scene* createScene(Engine* engine) {
     map->size_px.h = 1600;
     map->size_px.w = 1600;
     globals_Texture* texture;
-    load_bmp(engine, "res/bg.bmp", &texture);
+    files_load_texture(engine->renderer, "res/bg.bmp", &texture);
     map->texture = texture->texture;
     free(texture);
     scene->map = map;
@@ -70,7 +70,7 @@ Sprite* createSprite(Engine* engine) {
     sprite->renderer = &sprite_default_renderer;
     sprite->handler = &entity_default_handler;
 
-    load_bmp(engine, "res/test.bmp", &(sprite->texture));
+    files_load_texture(engine->renderer, "res/test.bmp", &(sprite->texture));
 
     sprite->pos_px.x = (SCREEN_WIDTH - sprite->texture->size.w) / 2;
     sprite->pos_px.y = (SCREEN_HEIGHT - sprite->texture->size.h) / 2;

@@ -18,6 +18,8 @@ typedef struct Engine {
 
     // Game information
     Scene* scene;
+    
+    globals_Tileset tilesets;
 } Engine;
 
 typedef struct EngineDesc {
@@ -34,11 +36,8 @@ typedef struct EngineDesc {
 } EngineDesc;
 
 int engine_init(EngineDesc* desc, Engine** p_engine);
-void engine_start(Engine* engine, Scene* scene); // FIXME: Temp parameter, will later be file
+void engine_start(Engine* engine, Scene* scene, const char* src); // FIXME: Temp parameter, will later be file
 
 void engine_clean(Engine* engine);
-
-void load_bmp(Engine* engine, const char* src, globals_Texture** dest);
-void engine_clean_texture(globals_Texture* texture);
 
 #endif

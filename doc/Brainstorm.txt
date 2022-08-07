@@ -46,3 +46,14 @@ if we ever want to change scene:
     - Saves current scene
     - Destroys current scene (things like HUD probably outlive scene)
     - Load new scene
+
+Things to do
+TODO: File loading logics
+TODO: Load scene
+    - Load data
+    - Generate map
+    - Generate sprites
+TODO: Save scene
+TODO: Character movement
+TODO: Collision detection
+TODO: HUD elements (textbox, menu, etc)

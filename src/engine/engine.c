@@ -60,6 +60,15 @@ void engine_clean(Engine* engine) {
     if (engine->scene)
         scene_destroy(engine->scene, true);
 
+    // Remove all tilesets
+    globals_Tileset* currNode = engine->tilesets.next;
+    globals_Tileset* nextNode;
+    while (currNode != NULL) {
+        nextNode = currNode->next;
+        files_clean_tileset(currNode);
+        currNode = nextNode;
+    }
+
     // Destroy Renderer
     if (engine->renderer)
         SDL_DestroyRenderer(engine->renderer);
@@ -76,17 +85,6 @@ void engine_clean(Engine* engine) {
     SDL_Quit();
 
     free(engine);
-}
-
-void engine_clean_texture(globals_Texture* texture) {
-    if (texture) {
-        if (texture->texture) {
-            SDL_DestroyTexture(texture->texture);
-            texture->texture = NULL;
-        }
-
-        free(texture);
-    }
 }
 
 void engine_mainloop(Engine* engine) {
@@ -135,35 +133,6 @@ void engine_mainloop(Engine* engine) {
     return;
 }
 
-void load_bmp(Engine* engine, const char* src, globals_Texture** dest) {
-    SDL_Surface* surface;
-
-    surface = SDL_LoadBMP(src);
-    if (surface == NULL) {
-        printf("Unable to load image %s! SDL Error: %s\n", src, SDL_GetError());
-        (*dest) = NULL;
-        return;
-    }
-
-    (*dest) = malloc(sizeof(globals_Texture));
-    (*dest)->texture = SDL_CreateTextureFromSurface(engine->renderer, surface);
-    if ((*dest)->texture == NULL) {
-        printf("Failed to create texture from %s! SDL Error: %s\n", src, SDL_GetError());
-        free(*dest);
-        (*dest) = NULL;
-    }
-    else {
-        (*dest)->size.x = 0;
-        (*dest)->size.y = 0;
-        (*dest)->size.w = surface->w;
-        (*dest)->size.h = surface->h;
-    }
-
-    SDL_FreeSurface(surface);
-
-    return;
-}
-
 void mainloop_handle_keyboard(Engine* engine, SDL_Event* event) {
     switch( event->key.keysym.sym )
     {
@@ -192,9 +161,9 @@ void mainloop_handle_keyboard(Engine* engine, SDL_Event* event) {
     }
 }
 
-void engine_start(Engine* engine, Scene* scene) {
+void engine_start(Engine* engine, Scene* scene, const char* src) {
     // TODO: Load scene from file
-    scene_load(scene, &(engine->scene));
+    scene_load(scene, src, engine, &(engine->scene));
 
     // Start Mainloop
     engine_mainloop(engine);
