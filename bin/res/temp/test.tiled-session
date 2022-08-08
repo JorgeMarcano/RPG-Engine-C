@@ -21,7 +21,7 @@
             "scaleInEditor": 1
         }
     },
-    "last.imagePath": "C:/Users/Jorge/Documents/GitHub/RPG-Engine-C/mapping/town_rpg_pack/graphics",
+    "last.imagePath": "C:/Users/Jorge/Documents/GitHub/RPG-Engine-C/bin/res/tilesets/images",
     "map.lastUsedFormat": "tmx",
     "map.layerDataFormat": null,
     "map.tileHeight": 16,
@@ -32,7 +32,7 @@
         "tiles-map.tsx"
     ],
     "project": "test.tiled-project",
-    "property.type": "int",
+    "property.type": "string",
     "recentFiles": [
         "tiles-map.tsx",
         "test.tmx"

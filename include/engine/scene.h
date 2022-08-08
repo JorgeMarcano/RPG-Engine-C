@@ -19,6 +19,7 @@ typedef struct Scene{
     Hud*   hud;
 
     SDL_Renderer* renderer;
+    globals_Tileset* tilesets;
 
     SDL_Point center;   // Which tile is in the center of the screen
 } Scene;

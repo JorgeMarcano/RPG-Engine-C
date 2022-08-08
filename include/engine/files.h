@@ -12,6 +12,9 @@ void files_clean_texture(globals_Texture* texture);
 bool files_load_tileset(const char* src, globals_Tileset** dest, SDL_Renderer* renderer, globals_Tileset* startTileset);
 void files_clean_tileset(globals_Tileset* tileset);
 
+bool files_load_functional(const char* src, globals_Functional_Tileset** dest);
+void files_clean_functional(globals_Functional_Tileset* tileset);
+
 // Remove 1 usage from count, if 0 usages left, clean this texture and return true
 bool files_remove_usage(globals_Tileset* tileset);
 

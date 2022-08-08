@@ -5,9 +5,6 @@ EXPORTS
    engine_mainloop
    engine_start
 
-   entity_default_updater
-   entity_default_renderer
-   entity_default_handler
    files_load_texture
-   map_default_renderer
-   sprite_default_renderer
+   files_load_scene
+   scene_destroy

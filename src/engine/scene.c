@@ -57,7 +57,7 @@ void scene_handle_event(Scene* scene, SDL_Event* event) {
 
 bool scene_load(const char* src, struct Engine* engine, Scene** dest) {
     // FIXME: remove hardcoded spawnID
-    return files_load_scene(src, 156, dest, engine->renderer, &(engine->tilesets), engine->fctMapping);
+    return files_load_scene(src, 0, dest, engine->renderer, &(engine->tilesets), engine->fctMapping);
 }
 
 bool scene_save();

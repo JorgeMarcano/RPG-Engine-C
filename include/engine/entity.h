@@ -11,6 +11,8 @@ typedef struct Door {
     char* scene_src;
     int spawnID;
 
+    SDL_Point location;
+
     struct Door* next;
 } Door;
 

@@ -32,6 +32,16 @@ typedef struct globals_Tileset {
     struct globals_Tileset* next;
 } globals_Tileset;
 
+typedef struct globals_Functional_Tileset {
+
+    int firstgid;
+    int tile_count;
+
+    char** sourcesList;
+    int* sourcesUseCount;
+
+} globals_Functional_Tileset;
+
 typedef struct globals_Tile {
     globals_Tileset* tileset;
     SDL_Point pos;

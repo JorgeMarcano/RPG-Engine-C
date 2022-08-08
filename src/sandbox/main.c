@@ -12,6 +12,8 @@ const Renderer renderers[];
 const Handler handlers[];
 const FunctionMaps mapping;
 
+Engine* engine;
+
 int main(int argc, char* argv[]) {
 
 	EngineDesc desc;
@@ -24,7 +26,7 @@ int main(int argc, char* argv[]) {
     desc.windowFlags = SDL_WINDOW_SHOWN;
     desc.fctMapping = &mapping;
 
-    Engine* engine;
+    // Engine* engine;
 
     engine_init(&desc, &engine);
     
@@ -35,20 +37,20 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-Sprite* createSprite(Engine* engine) {
-    Sprite* sprite = malloc(sizeof(Sprite));
+// Sprite* createSprite(Engine* engine) {
+//     Sprite* sprite = malloc(sizeof(Sprite));
 
-    sprite->updater = &entity_default_updater;
-    sprite->renderer = &sprite_default_renderer;
-    sprite->handler = &entity_default_handler;
+//     sprite->updater = &entity_default_updater;
+//     sprite->renderer = &sprite_default_renderer;
+//     sprite->handler = &entity_default_handler;
 
-    files_load_texture(engine->renderer, "res/test.bmp", &(sprite->texture));
+//     files_load_texture(engine->renderer, "res/test.bmp", &(sprite->texture));
 
-    sprite->pos_px.x = (SCREEN_WIDTH - sprite->texture->size.w) / 2;
-    sprite->pos_px.y = (SCREEN_HEIGHT - sprite->texture->size.h) / 2;
+//     sprite->pos_px.x = (SCREEN_WIDTH - sprite->texture->size.w) / 2;
+//     sprite->pos_px.y = (SCREEN_HEIGHT - sprite->texture->size.h) / 2;
 
-    return sprite;
-}
+//     return sprite;
+// }
 
 SDL_Point speed;
 
@@ -57,6 +59,7 @@ void update_map(void* entity, void* scene, Uint32 deltaT) {
     lastUpdate += deltaT;
 
     Scene* p_scene = scene;
+    Map* map = entity;
 
     if (lastUpdate > 100) {
         p_scene->center.x += speed.x;
@@ -76,11 +79,23 @@ void update_map(void* entity, void* scene, Uint32 deltaT) {
 
         // printf("x:%d, y:%d\n", p_scene->center.x, p_scene->center.y);
     }
+
+    Door* door = map->doors;
+    while (door != NULL) {
+        if (p_scene->center.x == door->location.x && p_scene->center.y == door->location.y) {
+            Scene* new_scene;
+            files_load_scene(door->scene_src, door->spawnID, &new_scene, p_scene->renderer, p_scene->tilesets, &mapping);
+            scene_destroy(p_scene, true);
+            engine->scene = new_scene;
+
+            return;
+        }
+
+        door = door->next;
+    }
 }
 
 void event_map(void* entity, void* scene, SDL_Event* event) {
-    Scene* p_scene = scene;
-
     if (event->type == SDL_KEYDOWN) {
         switch( event->key.keysym.sym )
         {
@@ -119,4 +134,6 @@ void event_map(void* entity, void* scene, SDL_Event* event) {
 const Updater updaters[] = {update_map};
 const Renderer renderers[] = {NULL};
 const Handler handlers[] = {event_map};
-const FunctionMaps mapping = {.updaters = updaters, .renderers = renderers, .handlers = handlers};
+const FunctionMaps mapping = {.updaters = updaters,
+                                .renderers = renderers,
+                                .handlers = handlers};
