@@ -5,8 +5,6 @@
 #include "Engine/scene.h"
 
 void engine_mainloop(Engine* engine);
-void handle_event(SDL_Event* event);
-void mainloop_handle_keyboard(Engine* engine, SDL_Event* event);
 
 int engine_init(EngineDesc* desc, Engine** p_engine) {
 
@@ -49,6 +47,8 @@ int engine_init(EngineDesc* desc, Engine** p_engine) {
     engine->is_running = false;
     engine->width = desc->w;
     engine->height = desc->h;
+
+    engine->fctMapping = desc->fctMapping;
 
     (*p_engine) = engine;
 
@@ -105,9 +105,6 @@ void engine_mainloop(Engine* engine) {
             case SDL_QUIT:
                 engine->is_running = false;
                 break;
-            case SDL_KEYDOWN:
-                mainloop_handle_keyboard(engine, &event);
-                break;
             }
 
             // Have Scene handle event
@@ -131,34 +128,6 @@ void engine_mainloop(Engine* engine) {
     }
     
     return;
-}
-
-void mainloop_handle_keyboard(Engine* engine, SDL_Event* event) {
-    switch( event->key.keysym.sym )
-    {
-    case SDLK_UP:
-        printf("UP\n");
-        break;
-
-    case SDLK_DOWN:
-        printf("DOWN\n");
-        break;
-
-    case SDLK_LEFT:
-        printf("LEFT\n");
-        break;
-
-    case SDLK_RIGHT:
-        printf("RIGHT\n");
-        break;
-
-    case SDLK_ESCAPE:
-        engine->is_running = false;
-        break;
-
-    default:
-        printf("Default Key\n");
-    }
 }
 
 void engine_start(Engine* engine, const char* src) {

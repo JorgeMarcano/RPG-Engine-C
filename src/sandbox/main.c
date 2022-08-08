@@ -7,6 +7,11 @@
 Scene* createScene(Engine* engine);
 Sprite* createSprite(Engine* engine);
 
+const Updater updaters[];
+const Renderer renderers[];
+const Handler handlers[];
+const FunctionMaps mapping;
+
 int main(int argc, char* argv[]) {
 
 	EngineDesc desc;
@@ -17,50 +22,17 @@ int main(int argc, char* argv[]) {
     desc.w = SCREEN_WIDTH;
     desc.h = SCREEN_HEIGHT;
     desc.windowFlags = SDL_WINDOW_SHOWN;
+    desc.fctMapping = &mapping;
 
     Engine* engine;
 
     engine_init(&desc, &engine);
-
-    // TEMP stuff
-    Scene* scene = createScene(engine);
-    Sprite* sprite = createSprite(engine);
-    scene->size_sprites = 1;
-    scene->sprites = malloc(scene->size_sprites * sizeof(Sprite*));
-    scene->sprites[0] = sprite;
     
     engine_start(engine, "res/maps/test.tmx");
 
-    // scene_destroy(scene, true);
     engine_clean(engine);
 
 	return 0;
-}
-
-Scene* createScene(Engine* engine) {
-    Scene* scene = malloc(sizeof(Scene));
-    scene->center.x = 0;
-    scene->center.y = 0;
-    scene->size_sprites = 0;
-    Hud* hud = malloc(sizeof(Hud));
-    hud->updater = &entity_default_updater;
-    hud->renderer = &entity_default_renderer;
-    hud->handler = &entity_default_handler;
-    scene->hud = hud;
-    Map* map = malloc(sizeof(Map));
-    map->updater = &entity_default_updater;
-    map->renderer = &map_default_renderer;
-    map->handler = &entity_default_handler;
-    map->size_px.h = 1600;
-    map->size_px.w = 1600;
-    globals_Texture* texture;
-    files_load_texture(engine->renderer, "res/bg.bmp", &texture);
-    map->texture = texture->texture;
-    free(texture);
-    scene->map = map;
-    scene->renderer = engine->renderer;
-
-    return scene;
 }
 
 Sprite* createSprite(Engine* engine) {
@@ -77,3 +49,74 @@ Sprite* createSprite(Engine* engine) {
 
     return sprite;
 }
+
+SDL_Point speed;
+
+void update_map(void* entity, void* scene, Uint32 deltaT) {
+    static Uint32 lastUpdate = 0;
+    lastUpdate += deltaT;
+
+    Scene* p_scene = scene;
+
+    if (lastUpdate > 100) {
+        p_scene->center.x += speed.x;
+        p_scene->center.y += speed.y;
+
+        if (p_scene->center.x < 0)
+            p_scene->center.x = 0;
+        else if (p_scene->center.x >= p_scene->map->size_tile.w)
+            p_scene->center.x = p_scene->map->size_tile.w - 1;
+
+        if (p_scene->center.y < 0)
+            p_scene->center.y = 0;
+        else if (p_scene->center.y >= p_scene->map->size_tile.h)
+            p_scene->center.y = p_scene->map->size_tile.h - 1;
+
+        lastUpdate = 0;
+
+        // printf("x:%d, y:%d\n", p_scene->center.x, p_scene->center.y);
+    }
+}
+
+void event_map(void* entity, void* scene, SDL_Event* event) {
+    Scene* p_scene = scene;
+
+    if (event->type == SDL_KEYDOWN) {
+        switch( event->key.keysym.sym )
+        {
+        case SDLK_UP:
+            speed.y = -1;
+            break;
+
+        case SDLK_DOWN:
+            speed.y = 1;
+            break;
+
+        case SDLK_LEFT:
+            speed.x = -1;
+            break;
+
+        case SDLK_RIGHT:
+            speed.x = 1;
+            break;
+        }
+    } else if (event->type == SDL_KEYUP) {
+        switch( event->key.keysym.sym )
+        {
+        case SDLK_UP:
+        case SDLK_DOWN:
+            speed.y = 0;
+            break;
+
+        case SDLK_LEFT:
+        case SDLK_RIGHT:
+            speed.x = 0;
+            break;
+        }
+    }
+}
+
+const Updater updaters[] = {update_map};
+const Renderer renderers[] = {NULL};
+const Handler handlers[] = {event_map};
+const FunctionMaps mapping = {.updaters = updaters, .renderers = renderers, .handlers = handlers};

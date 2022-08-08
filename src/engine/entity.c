@@ -70,6 +70,14 @@ void map_destroy(Map* map) {
     if (map == NULL)
         return;
 
+    Door* currNode = map->doors;
+    Door* tempNode;
+    while(currNode != NULL) {
+        tempNode = currNode->next;
+        free(currNode);
+        currNode = tempNode;
+    }
+
     SDL_DestroyTexture(map->texture);
     map->texture = NULL;
 
@@ -141,4 +149,17 @@ void map_generate(SDL_Renderer* renderer, globals_Tile** tiling, bool** collisio
     }
 
     SDL_SetRenderTarget(renderer, NULL);
+}
+
+bool entity_detect_collision(SDL_Point position, Scene* scene, Sprite** collider) {
+    (*collider) = NULL;
+    if (position.x < 0 || position.x > scene->map->size_tile.w)
+        return false;
+
+    if (position.y < 0 || position.y > scene->map->size_tile.h)
+        return false;
+
+    return scene->map->collisionTiles[position.x][position.y];
+
+    // TODO: Sprite collisions
 }

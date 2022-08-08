@@ -35,7 +35,21 @@ typedef struct globals_Tileset {
 typedef struct globals_Tile {
     globals_Tileset* tileset;
     SDL_Point pos;
+    int localTileID;
 } globals_Tile;
+
+// Updater  -> void foo(void* entity, void* scene, Uint32 deltaT)
+typedef void (*Updater)(void*, void*, Uint32);
+// Renderer -> void foo(void* entity, void* scene)
+typedef void (*Renderer)(void*, void*);
+// Handler  -> void foo(void* entity, void* scene, SDL_Event* event)
+typedef void (*Handler)(void*, void*, SDL_Event*);
+
+typedef struct FunctionMaps {
+    const Updater* updaters;
+    const Renderer* renderers;
+    const Handler* handlers;
+} FunctionMaps;
 
 typedef unsigned int size;
 

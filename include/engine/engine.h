@@ -20,6 +20,8 @@ typedef struct Engine {
     Scene* scene;
     
     globals_Tileset tilesets;
+
+    const FunctionMaps* fctMapping;
 } Engine;
 
 typedef struct EngineDesc {
@@ -33,6 +35,8 @@ typedef struct EngineDesc {
     int         h;
 
     Uint32      windowFlags;
+
+    const FunctionMaps* fctMapping;
 } EngineDesc;
 
 int engine_init(EngineDesc* desc, Engine** p_engine);

@@ -32,7 +32,7 @@
         "tiles-map.tsx"
     ],
     "project": "test.tiled-project",
-    "property.type": "bool",
+    "property.type": "int",
     "recentFiles": [
         "tiles-map.tsx",
         "test.tmx"

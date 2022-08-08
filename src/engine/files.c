@@ -242,6 +242,7 @@ void get_tile(int tileID, Scene_Tileset* tilesets, globals_Tile* dest) {
     Scene_Tileset* currNode = tilesets;
 
     dest->tileset = NULL;
+    dest->localTileID = 0;
 
     while (currNode != NULL) {
         // Is the tileID within this tileset
@@ -254,6 +255,7 @@ void get_tile(int tileID, Scene_Tileset* tilesets, globals_Tile* dest) {
                 int offset = tileID - tilesets->firstgid;
                 dest->pos.x = offset % tilesets->tileset->size_tiles.w;
                 dest->pos.y = offset / tilesets->tileset->size_tiles.w;
+                dest->localTileID = offset;
 
                 return;
             }
@@ -263,7 +265,81 @@ void get_tile(int tileID, Scene_Tileset* tilesets, globals_Tile* dest) {
     }
 }
 
-bool files_load_scene(const char* src, Scene** dest, SDL_Renderer* renderer, globals_Tileset* startTileset) {
+typedef struct Properties {
+    Updater updater;
+    Renderer renderer;
+    Handler handler;
+} Properties;
+
+Properties get_function_properties(FILE* file, const FunctionMaps* fctMapping, char* buff) {
+    Properties maps = {.updater = NULL,
+                    .renderer = NULL,
+                    .handler = NULL};
+
+    long cursor = ftell(file);
+
+    tagfind(file, "</layer", buff, false);
+    long endCursor = ftell(file);
+    fseek(file, cursor, SEEK_SET);
+
+    if (!tagfind(file, "<properties>", buff, false)) {
+        fseek(file, cursor, SEEK_SET);
+        return maps;
+    }
+
+    long tempCursor = ftell(file);
+
+    // If accidentally found another layer's properties
+    if (tempCursor > endCursor) {
+        fseek(file, cursor, SEEK_SET);
+        return maps;
+    }
+
+    tagfind(file, "</properties", buff, false);
+    endCursor = ftell(file);
+    fseek(file, tempCursor, SEEK_SET);
+
+    bool isEOF = false;
+    size_t buff_len;
+    char temp_buff[32];
+    temp_buff[0] = '\0';
+    int value = -1;
+    while (tagfind(file, "<property", buff, false) && ftell(file) < endCursor) {
+        // For each property, get the property
+        temp_buff[0] = '\0';
+        value = -1;
+        do {
+            isEOF = (fscanf(file, "%s", buff) == EOF);
+            buff_len = strlen(buff);
+
+            if (tagcmp(buff, "name=")) {
+                sscanf(buff, "name=\"%s", temp_buff);
+
+            } else if (tagcmp(buff, "value=")) {
+                sscanf(buff, "value=\"%d", &(value));
+            }
+
+        } while (!isEOF && buff_len && buff[buff_len-1] != '>');
+
+        if (value == -1)
+            continue;
+
+        if (strcmp(temp_buff, "Updater\"") == 0) {
+            maps.updater = fctMapping->updaters[value];
+        }
+        
+        else if (strcmp(temp_buff, "Renderer\"") == 0)
+            maps.renderer = fctMapping->renderers[value];
+
+        else if (strcmp(temp_buff, "Handler\"") == 0)
+            maps.handler = fctMapping->handlers[value];
+    }
+
+    fseek(file, cursor, SEEK_SET);
+    return maps;
+}
+
+bool files_load_scene(const char* src, int spawnID, Scene** dest, SDL_Renderer* renderer, globals_Tileset* startTileset, const FunctionMaps* fctMapping) {
     FILE* f = fopen(src, "r");
     if (f == NULL) {
         printf("Failed to open file: %s!\n", src);
@@ -277,6 +353,9 @@ bool files_load_scene(const char* src, Scene** dest, SDL_Renderer* renderer, glo
 
     Scene* scene = malloc(sizeof(Scene));
     scene->size_sprites = 0;
+    scene->center.x = 0;
+    scene->center.y = 0;
+    scene->hud = NULL;
 
     if (!tagfind(f, "<map", buff, true)) {
         fclose(f);
@@ -383,6 +462,8 @@ bool files_load_scene(const char* src, Scene** dest, SDL_Renderer* renderer, glo
         collisions[i] = malloc(map_size.h * sizeof(bool));
         tiling[i] = malloc(map_size.h * sizeof(globals_Tile));
     }
+    Door* doors = NULL;
+    globals_Tile tempTile;
     bool hasFailed = false;
     const char* delim = ",";
     char* tok;
@@ -408,6 +489,9 @@ bool files_load_scene(const char* src, Scene** dest, SDL_Renderer* renderer, glo
         } while (!isEOF && buff_len && buff[buff_len-1] != '>');
 
         if (strcmp(temp_buff, "Map") == 0) {
+            
+            Properties properties = get_function_properties(f, fctMapping, buff);
+            
             isEOF = !tagfind(f, "<data", buff, true);
             do {
                 isEOF = (fscanf(f, "%s", buff) == EOF);
@@ -438,10 +522,9 @@ bool files_load_scene(const char* src, Scene** dest, SDL_Renderer* renderer, glo
 
                 map_generate(renderer, tiling, NULL, map_size, &(scene->map));
 
-                // TODO: add handlers
-                scene->map->handler = &entity_default_handler;
-                scene->map->renderer = &map_default_renderer;
-                scene->map->updater = &entity_default_updater;
+                scene->map->handler = properties.handler ? properties.handler : &entity_default_handler;
+                scene->map->renderer = properties.renderer ? properties.renderer : &map_default_renderer;
+                scene->map->updater = properties.updater ? properties.updater : &entity_default_updater;
             }
 
         } else if (strcmp(temp_buff, "Collisions") == 0) {
@@ -476,11 +559,88 @@ bool files_load_scene(const char* src, Scene** dest, SDL_Renderer* renderer, glo
         } else if (strcmp(temp_buff, "Sprites") == 0) {
             //TODO:
         } else if (strcmp(temp_buff, "Doors") == 0) {
-            //TODO:
+            isEOF = !tagfind(f, "<data", buff, true);
+            do {
+                isEOF = (fscanf(f, "%s", buff) == EOF);
+                buff_len = strlen(buff);
+            } while (!isEOF && buff_len && buff[buff_len-1] != '>');
+
+            if (!isEOF) {
+                // For each line
+                int i;
+                int tileID;
+                Door* door;
+                for (int j = 0; j < map_size.h; j++) {
+                    fscanf(f, "%s", buff);
+                    
+                    // Get first token
+                    tok = strtok(buff, delim);
+                    
+                    sscanf(tok, "%d", &tileID);
+                    if (tileID) {
+                        get_tile(tileID, baseNode, &tempTile);
+                        door = malloc(sizeof(Door));
+                        door->next = doors;
+                        doors = door;
+                        // TODO: Find a way to get scene source for Door
+                        door->scene_src = NULL;
+                        door->spawnID = tempTile.localTileID;
+                    }
+
+                    // Loop for the rest of the tokens
+                    for (i = 1; i < map_size.w; i++) {
+                        tok = strtok(NULL, delim);
+                        
+                        sscanf(tok, "%d", &tileID);
+                        if (tileID) {
+                            get_tile(tileID, baseNode, &tempTile);
+                            door = malloc(sizeof(Door));
+                            door->next = doors;
+                            doors = door;
+                            // TODO: Find a way to get scene source for Door
+                            door->scene_src = NULL;
+                            door->spawnID = tempTile.localTileID;
+                        }
+                    }
+                }
+            }
         } else if (strcmp(temp_buff, "Spawns") == 0) {
-            //TODO:
-            scene->center.x = 0;
-            scene->center.y = 0;
+            isEOF = !tagfind(f, "<data", buff, true);
+            do {
+                isEOF = (fscanf(f, "%s", buff) == EOF);
+                buff_len = strlen(buff);
+            } while (!isEOF && buff_len && buff[buff_len-1] != '>');
+
+            if (!isEOF) {
+                // For each line
+                int i;
+                int tileID;
+                for (int j = 0; j < map_size.h; j++) {
+                    fscanf(f, "%s", buff);
+                    
+                    // Get first token
+                    tok = strtok(buff, delim);
+                    
+                    sscanf(tok, "%d", &tileID);
+                    get_tile(tileID, baseNode, &tempTile);
+                    if (tempTile.localTileID == spawnID) {
+                        scene->center.x = 0;
+                        scene->center.y = j;
+                    }
+
+                    // Loop for the rest of the tokens
+                    for (i = 1; i < map_size.w; i++) {
+                        tok = strtok(NULL, delim);
+                        
+                        sscanf(tok, "%d", &tileID);
+                        get_tile(tileID, baseNode, &tempTile);
+                        if (tempTile.localTileID == spawnID) {
+                            scene->center.x = i;
+                            scene->center.y = j;
+                        }
+                    }
+                }
+            }
         } else {
             printf("Layer name \"%s\" not a valid name, ignoring this layer!\n", temp_buff);
         }
@@ -496,6 +656,7 @@ bool files_load_scene(const char* src, Scene** dest, SDL_Renderer* renderer, glo
             printf("Failed while parsing layers!\n");
             while(baseNode != NULL) {
                 tempNode = baseNode->next;
+                files_remove_usage(baseNode->tileset);
                 free(baseNode);
                 baseNode = tempNode;
             }
@@ -519,6 +680,7 @@ bool files_load_scene(const char* src, Scene** dest, SDL_Renderer* renderer, glo
 
     while(baseNode != NULL) {
         tempNode = baseNode->next;
+        files_remove_usage(baseNode->tileset);
         free(baseNode);
         baseNode = tempNode;
     }
