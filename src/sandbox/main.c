@@ -12,8 +12,6 @@ const Renderer renderers[];
 const Handler handlers[];
 const FunctionMaps mapping;
 
-Engine* engine;
-
 int main(int argc, char* argv[]) {
 
 	EngineDesc desc;
@@ -25,6 +23,8 @@ int main(int argc, char* argv[]) {
     desc.h = SCREEN_HEIGHT;
     desc.windowFlags = SDL_WINDOW_SHOWN;
     desc.fctMapping = &mapping;
+    
+    Engine* engine;
 
     // Engine* engine;
 
@@ -83,10 +83,7 @@ void update_map(void* entity, void* scene, Uint32 deltaT) {
     Door* door = map->doors;
     while (door != NULL) {
         if (p_scene->center.x == door->location.x && p_scene->center.y == door->location.y) {
-            Scene* new_scene;
-            files_load_scene(door->scene_src, door->spawnID, &new_scene, p_scene->renderer, p_scene->tilesets, &mapping);
-            scene_destroy(p_scene, true);
-            engine->scene = new_scene;
+            scene_change(p_scene, door);
 
             return;
         }

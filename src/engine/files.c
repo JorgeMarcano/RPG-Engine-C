@@ -345,7 +345,7 @@ bool files_load_scene(const char* src, int spawnID, Scene** dest, SDL_Renderer* 
         printf("Failed to open file: %s!\n", src);
         return false;
     }
-
+    
     char buff[256];
     buff[0] = 0;
     char temp_buff[256];

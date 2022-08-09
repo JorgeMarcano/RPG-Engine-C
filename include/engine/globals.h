@@ -69,4 +69,7 @@ const SDL_Rect screen_size;
 struct Engine;
 struct Scene;
 
+Uint32 scene_event_id;
+#define SCENE_EVENT_CHANGE    0x1
+
 #endif

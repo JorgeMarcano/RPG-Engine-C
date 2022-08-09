@@ -4,6 +4,7 @@ EXPORTS
    engine_clean
    engine_mainloop
    engine_start
+   scene_change
 
    files_load_texture
    files_load_scene

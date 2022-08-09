@@ -6,6 +6,8 @@
 
 void engine_mainloop(Engine* engine);
 
+Uint32 scene_event_id = 0;
+
 int engine_init(EngineDesc* desc, Engine** p_engine) {
 
     //Initialize SDL
@@ -49,6 +51,14 @@ int engine_init(EngineDesc* desc, Engine** p_engine) {
     engine->height = desc->h;
 
     engine->fctMapping = desc->fctMapping;
+
+    scene_event_id = SDL_RegisterEvents(1);
+    if (scene_event_id == (Uint32)-1) {
+        printf("Could not register a custom event! SDL Error: %s\n", SDL_GetError());
+        engine_clean(engine);
+        free(engine);
+        return -4;
+    }
 
     (*p_engine) = engine;
 
@@ -101,10 +111,21 @@ void engine_mainloop(Engine* engine) {
     while (engine->is_running) {
         // Handle all events
         while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-            case SDL_QUIT:
+            if (event.type == SDL_QUIT) {
                 engine->is_running = false;
                 break;
+            }
+            else if (event.type == scene_event_id) {
+                if (event.user.code == SCENE_EVENT_CHANGE) {
+                    // Old scene is in data1, door is in data2
+                    files_load_scene(((Door*) event.user.data2)->scene_src,
+                                        ((Door*) event.user.data2)->spawnID,
+                                        &(engine->scene),
+                                        engine->renderer,
+                                        &(engine->tilesets),
+                                        engine->fctMapping);
+                    scene_destroy(event.user.data1, true);
+                }
             }
 
             // Have Scene handle event

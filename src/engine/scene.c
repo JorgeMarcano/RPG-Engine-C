@@ -82,3 +82,16 @@ void scene_destroy(Scene* scene, bool destroyHUD) {
 
     free(scene);
 }
+
+void scene_change(Scene* scene, Door* door) {
+    SDL_Event event;
+    SDL_memset(&event, 0, sizeof(SDL_Event));
+
+    event.type = scene_event_id;
+    event.user.code = SCENE_EVENT_CHANGE;
+    event.user.data1 = scene;
+    event.user.data2 = door;
+
+    SDL_PushEvent(&event);
+    printf("Requested a Scene change!\n");
+}

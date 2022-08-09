@@ -38,4 +38,6 @@ bool scene_save();
 
 void scene_destroy(Scene* scene, bool destroyHUD);
 
+void scene_change(Scene* scene, Door* door);
+
 #endif
