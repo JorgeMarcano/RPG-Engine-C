@@ -103,9 +103,9 @@ void engine_mainloop(Engine* engine) {
 
     engine->is_running = true;
 
-    // TODO: Might have to add guard for overflow (>1000Hrs though so not priority)
     Uint32 t0 = SDL_GetTicks();
     Uint32 t1 = t0;
+    Uint32 deltaT = 0;
 
     SDL_Event event;
     while (engine->is_running) {
@@ -116,7 +116,7 @@ void engine_mainloop(Engine* engine) {
                 break;
             }
             else if (event.type == scene_event_id) {
-                if (event.user.code == SCENE_EVENT_CHANGE) {
+                if (event.user.code == SCENE_EVENT_CHANGE_HUD_KEEP || event.user.code == SCENE_EVENT_CHANGE_HUD_REMOVE) {
                     // Old scene is in data1, door is in data2
                     files_load_scene(((Door*) event.user.data2)->scene_src,
                                         ((Door*) event.user.data2)->spawnID,
@@ -124,7 +124,11 @@ void engine_mainloop(Engine* engine) {
                                         engine->renderer,
                                         &(engine->tilesets),
                                         engine->fctMapping);
-                    scene_destroy(event.user.data1, true);
+
+                    if (event.user.code == SCENE_EVENT_CHANGE_HUD_KEEP)
+                        engine->scene->hud = ((Scene*) event.user.data1)->hud;
+
+                    scene_destroy(event.user.data1, event.user.code == SCENE_EVENT_CHANGE_HUD_REMOVE);
                 }
             }
 
@@ -139,7 +143,13 @@ void engine_mainloop(Engine* engine) {
 
         // Update and Render Scene
         t1 = SDL_GetTicks();
-        scene_update_render(engine->scene, t1-t0);
+        // Handle timer overflow
+        if (t1 < t0)
+            deltaT = ((SDL_MAX_UINT32) - t0) + t1;
+        else
+            deltaT = t1 - t0;
+
+        scene_update_render(engine->scene, deltaT);
 
         // Update screen
         SDL_RenderPresent(engine->renderer);
@@ -151,10 +161,25 @@ void engine_mainloop(Engine* engine) {
     return;
 }
 
-void engine_start(Engine* engine, const char* src) {
+void engine_start(Engine* engine, Door spawnDoor) {
     // Load scene from file
-    scene_load(src, engine, &(engine->scene));
+    files_load_scene(spawnDoor.scene_src,
+                        spawnDoor.spawnID,
+                        &(engine->scene),
+                        engine->renderer,
+                        &(engine->tilesets),
+                        engine->fctMapping);
 
     // Start Mainloop
     engine_mainloop(engine);
+}
+
+void engine_render(SDL_Renderer* renderer, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_Rect *dstrect, unsigned int scale) {
+    SDL_Rect scaled_rect;
+    scaled_rect.x = dstrect->x * scale;
+    scaled_rect.y = dstrect->y * scale;
+    scaled_rect.w = dstrect->w * scale;
+    scaled_rect.h = dstrect->h * scale;
+
+    SDL_RenderCopy(renderer, texture, srcrect, &scaled_rect);
 }

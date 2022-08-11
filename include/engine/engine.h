@@ -40,8 +40,10 @@ typedef struct EngineDesc {
 } EngineDesc;
 
 int engine_init(EngineDesc* desc, Engine** p_engine);
-void engine_start(Engine* engine, const char* src);
+void engine_start(Engine* engine, Door spawnDoor);
 
 void engine_clean(Engine* engine);
+
+void engine_render(SDL_Renderer* renderer, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_Rect *dstrect, unsigned int scale);
 
 #endif

@@ -22,6 +22,8 @@ typedef struct Scene{
     globals_Tileset* tilesets;
 
     SDL_Point center;   // Which tile is in the center of the screen
+
+    unsigned int scale;
 } Scene;
 
 // Update and Render Scene (if scene is visible)
@@ -33,11 +35,10 @@ void scene_update(Scene* scene, Uint32 deltaT);
 // Let scene's components handle event
 void scene_handle_event(Scene* scene, SDL_Event* event);
 
-bool scene_load(const char* src, struct Engine* engine, Scene** dest); // FIXME: Replace scene input with file input
 bool scene_save();
 
 void scene_destroy(Scene* scene, bool destroyHUD);
 
-void scene_change(Scene* scene, Door* door);
+void scene_change(Scene* scene, Door* door, bool keep_hud);
 
 #endif

@@ -1,5 +1,6 @@
 #include "Engine/entity.h"
 #include "Engine/scene.h"
+#include "Engine/engine.h"
 
 void map_default_renderer(void* entity, void* scene) {
     Scene* p_scene = (Scene*) scene;
@@ -12,10 +13,10 @@ void map_default_renderer(void* entity, void* scene) {
     SDL_Point center_pos_px;
     center_pos_px.x = p_scene->center.x * tile_size.w + tile_size.w / 2;
     center_pos_px.y = p_scene->center.y * tile_size.h + tile_size.h / 2;
-    SDL_Rect src_rect = screen_size;
-    SDL_Rect dst_rect = screen_size;
+    SDL_Rect src_rect = scene_size;
+    SDL_Rect dst_rect = scene_size;
     
-    src_rect.x = center_pos_px.x - (screen_size.w / 2);
+    src_rect.x = center_pos_px.x - (scene_size.w / 2);
     if (src_rect.x < 0) {
         dst_rect.x = -src_rect.x;
         src_rect.w += src_rect.x;
@@ -27,7 +28,7 @@ void map_default_renderer(void* entity, void* scene) {
         dst_rect.w = src_rect.w;
     }
 
-    src_rect.y = center_pos_px.y - (screen_size.h / 2);
+    src_rect.y = center_pos_px.y - (scene_size.h / 2);
     if (src_rect.y < 0) {
         dst_rect.y = -src_rect.y;
         src_rect.h += src_rect.y;
@@ -39,7 +40,7 @@ void map_default_renderer(void* entity, void* scene) {
         dst_rect.h = src_rect.h;
     }
     
-    SDL_RenderCopy(p_scene->renderer, p_map->texture, &src_rect, &dst_rect);
+    engine_render(p_scene->renderer, p_map->texture, &src_rect, &dst_rect, p_scene->scale);
 }
 
 void sprite_default_renderer(void* entity, void* scene) {
@@ -50,7 +51,7 @@ void sprite_default_renderer(void* entity, void* scene) {
     pos.x = p_sprite->pos_px.x;
     pos.y = p_sprite->pos_px.y;
     
-    SDL_RenderCopy(p_scene->renderer, p_sprite->texture->texture, NULL, &pos);
+    engine_render(p_scene->renderer, p_sprite->texture->texture, NULL, &pos, p_scene->scale);
 }
 
 // Entity Defaults do nothing
@@ -151,7 +152,8 @@ void map_generate(SDL_Renderer* renderer, globals_Tile** tiling, bool** collisio
     SDL_SetRenderTarget(renderer, NULL);
 }
 
-bool entity_detect_collision(SDL_Point position, Scene* scene, Sprite** collider) {
+bool entity_detect_collision(Sprite* sprite, Scene* scene, Sprite** collider) {
+    SDL_Point position = sprite->pos_tile;
     (*collider) = NULL;
     if (position.x < 0 || position.x > scene->map->size_tile.w)
         return false;
@@ -159,7 +161,37 @@ bool entity_detect_collision(SDL_Point position, Scene* scene, Sprite** collider
     if (position.y < 0 || position.y > scene->map->size_tile.h)
         return false;
 
-    return scene->map->collisionTiles[position.x][position.y];
+    if (scene->map->collisionTiles[position.x][position.y])
+        return true;
 
-    // TODO: Sprite collisions
+    // Sprite collisions
+    SDL_Point* tempPoint;
+    for (size i = 0; i < scene->size_sprites; i++) {
+        tempPoint = &(scene->sprites[i]->pos_tile);
+        if (position.x == tempPoint->x && position.y == tempPoint->y) {
+            if (sprite->spriteID != scene->sprites[i]->spriteID) {
+                (*collider) = scene->sprites[i];
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool entity_check_door(SDL_Point position, Scene* scene, Door** dest) {
+    Door* door = scene->map->doors;
+
+    (*dest) = NULL;
+    while (door != NULL) {
+        if (position.x == door->location.x && position.y == door->location.y) {
+            (*dest) = door;
+
+            return true;
+        }
+
+        door = door->next;
+    }
+
+    return false;
 }

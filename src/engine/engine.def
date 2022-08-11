@@ -5,6 +5,7 @@ EXPORTS
    engine_mainloop
    engine_start
    scene_change
+   entity_check_door
 
    files_load_texture
    files_load_scene

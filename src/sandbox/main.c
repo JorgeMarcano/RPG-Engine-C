@@ -3,10 +3,6 @@
 
 #include "Engine/engine.h"
 
-// FIXME: Temp functions
-Scene* createScene(Engine* engine);
-Sprite* createSprite(Engine* engine);
-
 const Updater updaters[];
 const Renderer renderers[];
 const Handler handlers[];
@@ -28,30 +24,18 @@ int main(int argc, char* argv[]) {
 
     // Engine* engine;
 
+    Door startDoor = {.scene_src = "res/maps/test.tmx", .spawnID = 0};
+
     engine_init(&desc, &engine);
     
-    engine_start(engine, "res/maps/test.tmx");
+    engine_start(engine, startDoor);
 
     engine_clean(engine);
 
 	return 0;
 }
 
-// Sprite* createSprite(Engine* engine) {
-//     Sprite* sprite = malloc(sizeof(Sprite));
-
-//     sprite->updater = &entity_default_updater;
-//     sprite->renderer = &sprite_default_renderer;
-//     sprite->handler = &entity_default_handler;
-
-//     files_load_texture(engine->renderer, "res/test.bmp", &(sprite->texture));
-
-//     sprite->pos_px.x = (SCREEN_WIDTH - sprite->texture->size.w) / 2;
-//     sprite->pos_px.y = (SCREEN_HEIGHT - sprite->texture->size.h) / 2;
-
-//     return sprite;
-// }
-
+// TODO: Temp
 SDL_Point speed;
 
 void update_map(void* entity, void* scene, Uint32 deltaT) {
@@ -80,16 +64,9 @@ void update_map(void* entity, void* scene, Uint32 deltaT) {
         // printf("x:%d, y:%d\n", p_scene->center.x, p_scene->center.y);
     }
 
-    Door* door = map->doors;
-    while (door != NULL) {
-        if (p_scene->center.x == door->location.x && p_scene->center.y == door->location.y) {
-            scene_change(p_scene, door);
-
-            return;
-        }
-
-        door = door->next;
-    }
+    Door* door;
+    if (entity_check_door(p_scene->center, p_scene, &door))
+        scene_change(p_scene, door, true);
 }
 
 void event_map(void* entity, void* scene, SDL_Event* event) {

@@ -65,11 +65,17 @@ typedef unsigned int size;
 
 const SDL_Rect tile_size;
 const SDL_Rect screen_size;
+const SDL_Rect scene_size;
 
 struct Engine;
 struct Scene;
 
 Uint32 scene_event_id;
-#define SCENE_EVENT_CHANGE    0x1
+#define SCENE_EVENT_CHANGE_HUD_REMOVE   0x1
+#define SCENE_EVENT_CHANGE_HUD_KEEP     0x2
+
+#define DISPLAY_SCALE   2
+#define SCENE_WIDTH     SCREEN_WIDTH / DISPLAY_SCALE
+#define SCENE_HEIGHT    SCREEN_HEIGHT / DISPLAY_SCALE
 
 #endif

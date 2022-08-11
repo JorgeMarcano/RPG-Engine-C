@@ -55,11 +55,6 @@ void scene_handle_event(Scene* scene, SDL_Event* event) {
         (*scene->hud->handler)(scene->hud, scene, event);
 }
 
-bool scene_load(const char* src, struct Engine* engine, Scene** dest) {
-    // FIXME: remove hardcoded spawnID
-    return files_load_scene(src, 0, dest, engine->renderer, &(engine->tilesets), engine->fctMapping);
-}
-
 bool scene_save();
 
 void scene_destroy(Scene* scene, bool destroyHUD) {
@@ -83,12 +78,12 @@ void scene_destroy(Scene* scene, bool destroyHUD) {
     free(scene);
 }
 
-void scene_change(Scene* scene, Door* door) {
+void scene_change(Scene* scene, Door* door, bool keep_hud) {
     SDL_Event event;
     SDL_memset(&event, 0, sizeof(SDL_Event));
 
     event.type = scene_event_id;
-    event.user.code = SCENE_EVENT_CHANGE;
+    event.user.code = keep_hud ? SCENE_EVENT_CHANGE_HUD_KEEP : SCENE_EVENT_CHANGE_HUD_REMOVE;
     event.user.data1 = scene;
     event.user.data2 = door;
 
